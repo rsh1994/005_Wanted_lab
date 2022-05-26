@@ -1,53 +1,27 @@
-from flask import Flask, request
-from flask_restx import Resource, Api
-from flask_sqlalchemy import SQLAlchemy
-import config
+from flask import Flask
+from flask_restful import Api
+from flask_migrate import Migrate
+
+from company.models import db
+from company.controller import CompanyList, CompanyCreateView, CompanyDetail
+from config import DB_URL
+
 
 app = Flask(__name__)
 api = Api(app)
 
-app.config['SQLALCHEMY_DATABASE_URL'] = config.DB_URL
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config["SQLALCHEMY_DATABASE_URI"] = DB_URL
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_COMMIT_ON_TEARDOWN"]  = True
 
+db.init_app(app)
+db.app = app
+db.create_all()
+migrate = Migrate(app, db)
 
-@app.route('/')
-def hello():
-    return 'Hello, My First Flask!'
+api.add_resource(CompanyList, "/search")
+api.add_resource(CompanyCreateView, '/companies')
+api.add_resource(CompanyDetail, "/companies/<comp_name>")
 
-@app.route('/companies')
-class CompanyPostListGetView(Resource):
-
-    def post(self):
-        # 새로운 회사를 추가합니다.
-        pass
-
-    def get(self):
-        # 회사들 리스트를 조회합니다.
-        pass
-
-
-@app.route('/companies/<string:company_name>')
-class CompanyDeatilGetView(Resource):
-
-    def get(self, company_name):
-        # 회사 이름으로 검색합니다.
-        pass
-
-    def put(self, company_name):
-        # 회사 이름으로 데이터를 수정합니다.
-        pass
-
-    def delete(self, company_name):
-        # 회사 이름으로 데이러틑 삭제합니다.
-        pass
-
-
-@app.route('/search')
-class SearchView(Resource):
-    def get(self):
-        # 자동완성 검색을 합니다.
-        pass
-
-
-
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
